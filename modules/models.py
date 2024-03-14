@@ -71,6 +71,7 @@ def load_model(model_name, loader=None):
         'AutoAWQ': AutoAWQ_loader,
         'QuIP#': QuipSharp_loader,
         'HQQ': HQQ_loader,
+        'Neuron': Neuron_loader,
     }
 
     metadata = get_model_metadata(model_name)
@@ -390,6 +391,22 @@ def HQQ_loader(model_name):
     model = HQQModelForCausalLM.from_quantized(str(model_dir))
     HQQLinear.set_backend(getattr(HQQBackend, shared.args.hqq_backend))
     return model
+
+
+def Neuron_loader(model_name):
+    from transformers_neuronx.llama.model import LlamaForSampling
+
+    path_to_model = Path(f'{shared.args.model_dir}/{model_name}/model')
+    path_to_neuron = Path(f'{shared.args.model_dir}/{model_name}/artifacts')
+    path_to_tokenizer = Path(f'{shared.args.model_dir}/{model_name}/tokenizer')
+
+    model = LlamaForSampling.from_pretrained(path_to_model, batch_size=1, tp_degree=24, amp='f16')
+    model.load(path_to_neuron) # Load the compiled Neuron artifacts
+    model.to_neuron() # will skip compile
+
+    tokenizer = AutoTokenizer.from_pretrained(path_to_tokenizer)
+
+    return model, tokenizer
 
 
 def get_max_memory_dict():

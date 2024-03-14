@@ -1,0 +1,9 @@
+rich
+gradio==3.50.*
+markdown
+datasets
+peft==0.7.*
+numba==0.59.0
+SpeechRecognition==3.10.1
+sse-starlette==2.0.0
+tiktoken==0.6.0

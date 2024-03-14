@@ -163,6 +163,8 @@ def infer_loader(model_name, model_settings):
         loader = 'ExLlamav2_HF'
     elif re.match(r'.*-hqq', model_name.lower()):
         return 'HQQ'
+    elif re.match(r'.*-neuron', model_name.lower()):
+        return 'Neuron'
     else:
         loader = 'Transformers'
 

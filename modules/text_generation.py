@@ -27,6 +27,14 @@ from modules.logging_colors import logger
 from modules.models import clear_torch_cache, local_rank
 
 
+def is_neuron() -> bool:
+    try:
+        import transformers_neuronx
+    except ImportError:
+        transformers_neuronx = None
+    return transformers_neuronx is not None
+
+
 def generate_reply(*args, **kwargs):
     shared.generation_lock.acquire()
     try:
@@ -48,6 +56,8 @@ def _generate_reply(question, state, stopping_strings=None, is_chat=False, escap
 
         if shared.model.__class__.__name__ in ['LlamaCppModel', 'Exllamav2Model', 'CtransformersModel']:
             generate_func = generate_reply_custom
+        elif shared.args.loader == 'Neuron':
+            generate_func = generate_reply_neuron
         else:
             generate_func = generate_reply_HF
 
@@ -145,6 +155,8 @@ def encode(prompt, add_special_tokens=True, add_bos_token=True, truncation_lengt
         return input_ids.to(device)
     elif is_torch_xpu_available():
         return input_ids.to("xpu:0")
+    elif is_neuron():
+        return input_ids
     else:
         return input_ids.cuda()
 
@@ -423,6 +435,20 @@ def generate_reply_HF(question, original_question, seed, state, stopping_strings
         new_tokens = len(output) - (original_tokens if not shared.is_seq2seq else 0)
         print(f'Output generated in {(t1-t0):.2f} seconds ({new_tokens/(t1-t0):.2f} tokens/s, {new_tokens} tokens, context {original_tokens}, seed {seed})')
         return
+
+
+def generate_reply_neuron(question, original_question, seed, state, stopping_strings=None, is_chat=False):
+    """
+    For nueron models that use the transformers neuron library for sampling
+    """
+    input_ids = encode(question, add_bos_token=state['add_bos_token'], truncation_length=get_max_prompt_length(state))
+    question, input_ids, inputs_embeds = apply_extensions('tokenizer', state, question, input_ids, None)
+    print(f"max_seq_len is :{shared.args.max_seq_len}")
+    print(f"top_k is :{state['top_k']}")
+    with torch.inference_mode():
+          output = shared.model.sample(input_ids,sequence_length=shared.args.max_seq_len, top_k=state['top_k'])
+          starting_from = 0 if shared.is_seq2seq else len(input_ids[0])
+          yield get_reply_from_output_ids(output[0], state,starting_from=starting_from)
 
 
 def generate_reply_custom(question, original_question, seed, state, stopping_strings=None, is_chat=False):
