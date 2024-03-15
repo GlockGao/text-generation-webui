@@ -53,7 +53,7 @@ spec:
           effect: "NoSchedule"
       containers:
       - image: 928808346782.dkr.ecr.us-west-2.amazonaws.com/text-generation-webui-neuron:latest
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         name: text-generation-webui
         resources:
           limits:
