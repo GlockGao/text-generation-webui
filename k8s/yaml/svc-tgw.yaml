@@ -29,7 +29,7 @@ metadata:
   labels:
     app: text-generation-webui
   name: text-generation-webui
-  namespace: default
+  namespace: tgw
 spec:
   replicas: 1
   revisionHistoryLimit: 10  # 滚动更新后, 保留的历史版本数
@@ -57,7 +57,7 @@ spec:
         name: text-generation-webui
         resources:
           limits:
-            aws.amazon.com/neurondevice: 12
+            aws.amazon.com/neurondevice: 16
         volumeMounts:
           - name: persistent-storage-for-models
             mountPath: /home/app/text-generation-webui/models
