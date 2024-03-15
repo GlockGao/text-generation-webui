@@ -441,14 +441,27 @@ def generate_reply_neuron(question, original_question, seed, state, stopping_str
     """
     For nueron models that use the transformers neuron library for sampling
     """
-    input_ids = encode(question, add_bos_token=state['add_bos_token'], truncation_length=get_max_prompt_length(state))
-    question, input_ids, inputs_embeds = apply_extensions('tokenizer', state, question, input_ids, None)
-    print(f"max_seq_len is :{shared.args.max_seq_len}")
-    print(f"top_k is :{state['top_k']}")
-    with torch.inference_mode():
-          output = shared.model.sample(input_ids,sequence_length=shared.args.max_seq_len, top_k=state['top_k'])
-          starting_from = 0 if shared.is_seq2seq else len(input_ids[0])
-          yield get_reply_from_output_ids(output[0], state,starting_from=starting_from)
+    t0 = time.time()
+    try:
+        input_ids = encode(question, add_bos_token=state['add_bos_token'], truncation_length=get_max_prompt_length(state))
+        original_input_ids = input_ids
+        question, input_ids, inputs_embeds = apply_extensions('tokenizer', state, question, input_ids, None)
+        print(f"max_seq_len is :{shared.args.max_seq_len}")
+        print(f"top_k is :{state['top_k']}")
+        with torch.inference_mode():
+            output = shared.model.sample(input_ids,sequence_length=shared.args.max_seq_len, top_k=state['top_k'])
+            starting_from = 0 if shared.is_seq2seq else len(input_ids[0])
+            yield get_reply_from_output_ids(output[0], state,starting_from=starting_from)
+
+    except Exception:
+        traceback.print_exc()
+
+    finally:
+        t1 = time.time()
+        original_tokens = len(original_input_ids[0])
+        new_tokens = len(output) - (original_tokens if not shared.is_seq2seq else 0)
+        print(f'Output generated in {(t1-t0):.2f} seconds ({new_tokens/(t1-t0):.2f} tokens/s, {new_tokens} tokens, context {original_tokens}, seed {seed})')
+        return
 
 
 def generate_reply_custom(question, original_question, seed, state, stopping_strings=None, is_chat=False):
