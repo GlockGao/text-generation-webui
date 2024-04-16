@@ -13,6 +13,6 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   csi:
     driver: efs.csi.aws.com
-    volumeHandle: fs-07a3ad2e330e03b92::fsap-07a50189b5fa4beb0
-    volumeAttributes:
-      mounttargetip: 192.168.52.171
+    volumeHandle: fs-0e383d0d2309c2131::fsap-016321fdfbdab0db1
+    # volumeAttributes:
+    #   mounttargetip: 192.168.52.171

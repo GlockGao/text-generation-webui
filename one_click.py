@@ -346,15 +346,15 @@ def update_requirements(initial_installation=False, pull=True):
             'one_click.py'
         ]
 
-        before_pull_hashes = {file_name: calculate_file_hash(file_name) for file_name in files_to_check}
-        run_cmd("git pull --autostash", assert_success=True, environment=True)
-        after_pull_hashes = {file_name: calculate_file_hash(file_name) for file_name in files_to_check}
+        # before_pull_hashes = {file_name: calculate_file_hash(file_name) for file_name in files_to_check}
+        # run_cmd("git pull --autostash", assert_success=True, environment=True)
+        # after_pull_hashes = {file_name: calculate_file_hash(file_name) for file_name in files_to_check}
 
-        # Check for differences in installation file hashes
-        for file_name in files_to_check:
-            if before_pull_hashes[file_name] != after_pull_hashes[file_name]:
-                print_big_message(f"File '{file_name}' was updated during 'git pull'. Please run the script again.")
-                exit(1)
+        # # Check for differences in installation file hashes
+        # for file_name in files_to_check:
+        #     if before_pull_hashes[file_name] != after_pull_hashes[file_name]:
+        #         print_big_message(f"File '{file_name}' was updated during 'git pull'. Please run the script again.")
+        #         exit(1)
 
     if os.environ.get("INSTALL_EXTENSIONS", "").lower() in ("yes", "y", "true", "1", "t", "on"):
         install_extensions_requirements()

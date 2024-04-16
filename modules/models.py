@@ -400,7 +400,8 @@ def Neuron_loader(model_name):
     path_to_neuron = Path(f'{shared.args.model_dir}/{model_name}/artifacts')
     path_to_tokenizer = Path(f'{shared.args.model_dir}/{model_name}/tokenizer')
 
-    model = LlamaForSampling.from_pretrained(path_to_model, batch_size=1, tp_degree=32, amp='f16')
+    # model = LlamaForSampling.from_pretrained(path_to_model, batch_size=1, tp_degree=24, amp='f16') # inf2.24x
+    model = LlamaForSampling.from_pretrained(path_to_model, batch_size=1, tp_degree=2, amp='f16') # trn1.32x
     model.load(path_to_neuron) # Load the compiled Neuron artifacts
     model.to_neuron() # will skip compile
 
